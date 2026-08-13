@@ -4,18 +4,18 @@ A modular Playwright automation framework for advanced end-to-end and API-inspir
 
 ## Overview
 
-This project is set up to help automate browser-based test flows with a clean project structure, reusable page objects, utility helpers, and environment-aware configuration.
+This project is set up to automate browser-based flows with a clean structure, reusable page objects, utility helpers, and environment-aware configuration.
 
 It includes:
 
-- Page object model structure under `src/pages`
+- Page object model support under `src/pages`
 - Shared custom fixtures under `src/fixtures`
 - API helper modules under `src/api`
-- Environment/config utilities under `src/config`
+- Environment and configuration helpers under `src/config`
 - Reusable test data under `src/testdata`
 - Utility functions under `src/utils`
 - Test suites under `src/tests`
-- Browser automation setup in `playwright.config.ts`
+- Playwright setup in `playwright.config.ts`
 
 ## Tech Stack
 
@@ -92,6 +92,8 @@ API_BASE_URL=https://restful-booker.herokuapp.com
 
 The config in `playwright.config.ts` automatically resolves the correct base URL based on `TTA_ENV` or `BASE_URL`.
 
+If you want to keep environment variables locally and avoid committing them, add `.env` to `.gitignore`.
+
 ## Running Tests
 
 Run all tests:
@@ -141,7 +143,8 @@ The project configuration includes:
 
 - `TTA_ENV` can be set to values such as `qa`, `dev`, `stg`, `prod`, or `local`.
 - If `BASE_URL` is set, it takes priority over the environment-based URL selection.
-- The framework is designed to be easy to extend with new page objects, fixtures, and utilities.
+- The framework is designed to be extended easily with new page objects, fixtures, and utilities.
+- The default project is Chromium desktop browser configuration, but more projects can be added as needed.
 
 ## Example Workflow
 
