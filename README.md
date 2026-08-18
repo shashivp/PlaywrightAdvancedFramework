@@ -253,28 +253,226 @@ The project configuration includes:
 - The framework is designed to be extended easily with new page objects, fixtures, and utilities.
 - The default project is Chromium desktop browser configuration, but more projects can be added as needed.
 
+## Utilities
+
+### Logger (src/utils/logger.ts)
+A Winston-backed logging system with scoped loggers:
+
+```typescript
+import { createLogger } from '@utils/logger';
+
+const log = createLogger('MyClass');
+log.info('This message is tagged with [MyClass]');
+log.debug('Debug information');
+log.error('Error message');
+```
+
+Output format: `2026-08-18 09:11:55 [info] [MyClass] Message text`
+
+Logs are written to both:
+- Console (with color formatting)
+- `logs/combined.log` file
+
+### Element Locator (src/utils/UtilElementLocator.ts)
+A flexible utility for common element interactions:
+
+```typescript
+import { UtilElementLocator } from '@utils/UtilElementLocator';
+
+const el = new UtilElementLocator(page, 'MyTestClass');
+
+// Mouse actions
+await el.click(selector);
+await el.doubleClick(selector);
+await el.rightClick(selector);
+await el.hover(selector);
+
+// Input actions
+await el.fill(selector, 'text');
+await el.type(selector, 'text'); // Uses pressSequentially
+await el.clear(selector);
+
+// Getters
+const text = await el.getText(selector);
+const value = await el.getAttribute(selector, 'attr-name');
+const isVisible = await el.isVisible(selector);
+```
+
+Supports both CSS selectors (strings) and Playwright Locators.
+
+## Advanced Features
+
+### Headed Mode Testing
+Run tests with a visible browser for debugging:
+
+```bash
+npx playwright test --headed
+npx playwright test src/tests/Login.spec.ts --headed
+```
+
+### Debug Mode
+Enable Playwright Inspector:
+
+```bash
+npx playwright test --debug
+```
+
+### Test Reports
+Playwright generates comprehensive HTML reports with:
+- Test execution timeline
+- Screenshots and videos
+- Trace files for detailed debugging
+- Network activity logs
+
+View the last report:
+```bash
+npx playwright show-report
+```
+
+### Environment-Based Testing
+Switch environments via `TTA_ENV`:
+
+```bash
+TTA_ENV=qa npx playwright test
+TTA_ENV=dev npx playwright test
+TTA_ENV=prod npx playwright test
+```
+
+Or set in `.env`:
+```env
+TTA_ENV=stg
+```
+
+## Best Practices
+
+### Page Objects
+- Keep selectors private within page objects
+- Use descriptive method names that reflect user actions
+- Always log important steps using `this.log.info()`
+- Return `this` from navigation methods for chaining (optional)
+
+### Tests
+- Use `test.step()` to organize test flows
+- Use meaningful test names describing the scenario
+- Tag tests with `@p0`, `@p1`, etc. for priority grouping
+- Keep tests focused on a single user flow
+- Use data-driven testing with `test.describe()` and fixtures
+
+### Selectors
+- Prefer `data-test` attributes over CSS/XPath
+- Make selectors stable and resistant to UI changes
+- Avoid deep DOM traversal
+
+### Assertions
+- Use Playwright's built-in assertions with proper timeouts
+- Avoid multiple assertions in test steps
+- Assert on visibility or state, not just element presence
+
+## Debugging & Troubleshooting
+
+### Common Issues
+
+**1. Import errors with path aliases**
+```
+Error: Cannot find module '@pages/LoginPage'
+```
+Solution: Ensure `tsconfig.json` has proper `paths` configuration and aliases.
+
+**2. Element not found**
+```
+Error: locator.click: Target page, context or browser has been closed
+```
+Solution: Check element selectors are correct and wait for proper page load.
+
+**3. Test timeouts**
+- Increase timeout in `playwright.config.ts`: `timeout: 60000`
+- Check network conditions and element visibility
+- Use `.waitFor()` methods to wait for specific conditions
+
+### Viewing Logs
+```bash
+# View combined logs
+cat logs/combined.log
+
+# Filter by specific test
+grep "login.spec" logs/combined.log
+```
+
 ## Recent Updates
 
-### Fixed Issues
-- ✅ Added TypeScript path aliases configuration for cleaner imports
-- ✅ Updated `BasePage` class to include logger (`log`) and element locator (`el`) properties
+### ✅ Completed (Latest Commit)
+- ✅ Added TypeScript path aliases configuration for cleaner imports (@pages, @utils, @fixtures, @config, @testdata, @api)
+- ✅ Updated `BasePage` class with logger (`log`) and element locator (`el`) properties
 - ✅ All page objects now inherit logging and element interaction utilities
-- ✅ Login test now passes successfully in headed mode
+- ✅ Login test passes successfully in headed mode with detailed logging
+- ✅ Comprehensive README documentation with examples and best practices
+- ✅ All files pushed to GitHub repository
 
 ### Test Status
-- ✅ `src/tests/Login.spec.ts` - PASSING
-  - Logs in with valid credentials @p0
+- ✅ `src/tests/Login.spec.ts` - **PASSING**
+  - Test: "logs in with valid credentials @p0"
   - Duration: ~2-3 seconds
-  - Includes video, trace, and screenshot artifacts
+  - Artifacts: Video, trace, screenshots
+  - Status: ✓ 1 passed
 
-## Example Workflow
+## Development Workflow
 
-1. Set environment variables in `.env`
-2. Write a new test under `src/tests`
-3. Add page objects under `src/pages`
-4. Run the suite with Playwright
-5. Review HTML reports for failures and traces
+1. **Setup**
+   ```bash
+   npm install
+   npx playwright install
+   ```
 
-## Contribution
+2. **Configure Environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
 
-This repository is intended for structured, maintainable automation work. Keep tests readable, data-driven where possible, and use reusable page objects for better scalability.
+3. **Create Test Structure**
+   - Add page object in `src/pages/YourPage.ts`
+   - Add test in `src/tests/YourTest.spec.ts`
+   - Add test data in `src/testdata/` if needed
+
+4. **Run Tests**
+   ```bash
+   npx playwright test                          # Run all
+   npx playwright test --headed                 # Show browser
+   npx playwright test --debug                  # Debug mode
+   npx playwright show-report                   # View reports
+   ```
+
+5. **Review & Push**
+   ```bash
+   git status
+   git add .
+   git commit -m "feat: Add new test"
+   git push origin main
+   ```
+
+## Contribution Guidelines
+
+This repository follows structured automation practices:
+
+- **Code Quality**: Use TypeScript strict mode, consistent naming conventions
+- **Readability**: Write tests that read like documentation
+- **Maintainability**: Use page objects, avoid code duplication
+- **Scalability**: Design utilities for reuse across multiple tests
+- **Documentation**: Comment complex logic, update README for major changes
+
+### Commit Message Format
+```
+<type>: <description>
+
+feat: Add new test feature
+fix: Resolve failing test
+docs: Update documentation
+refactor: Improve code structure
+```
+
+## Support & Resources
+
+- [Playwright Documentation](https://playwright.dev)
+- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+- [TTACart Application](https://app.thetestingacademy.com)
+- [Test Academy Learning Resources](https://thetestingacademy.com)
